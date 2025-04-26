@@ -56,7 +56,14 @@ Box(modifier = Modifier.fillMaxSize()){
         }
 
     }
+    Row(modifier = Modifier.fillMaxWidth().background(Color.Blue)){
+        Row(modifier = Modifier.weight(1f)){
 
+        }
+        Box(modifier = Modifier.weight(1f).background(color = Color.Magenta)){
+
+        }
+    }
 }
 }
 
