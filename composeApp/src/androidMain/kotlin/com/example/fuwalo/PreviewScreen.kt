@@ -33,10 +33,7 @@ import fuwalo.composeapp.generated.resources.background
 
 
 
-@Composable
-fun PreviewScreen(){
- //PianoScreen()
-}
+
 
 
 
@@ -52,77 +49,8 @@ Home()
 
 
 
-@Composable
-fun PianoScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFFEDE7F6), Color(0xFFD1C4E9))
-                )
-            )
-            .padding(16.dp)
-    ) {
-        Column {
-            TopBar()
-            Spacer(modifier = Modifier.height(24.dp))
-            PianoGrid()
-        }
-        BottomControls(modifier = Modifier.align(Alignment.BottomCenter))
-    }
-}
 
-@Composable
-fun TopBar() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(width = 32.dp, height = 8.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(Color(0xFFD1C4E9))
-            )
-            Box(
-                modifier = Modifier
-                    .size(width = 32.dp, height = 8.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(Color(0xFFD1C4E9))
-            )
-        }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            IconButton(
-                onClick = { /* Save */ },
-                modifier = Modifier
-                    .background(Color.White, shape = CircleShape)
-                    .size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add, // Replace with your icons
-                    contentDescription = "Save",
-                    tint = Color.Black
-                )
-            }
-            IconButton(
-                onClick = { /* Home */ },
-                modifier = Modifier
-                    .background(Color.White, shape = CircleShape)
-                    .size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Home, // Replace with your icons
-                    contentDescription = "Home",
-                    tint = Color.Black
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun PianoGrid() {
