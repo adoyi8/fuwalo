@@ -1,9 +1,15 @@
 package com.example.fuwalo
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 
 import androidx.compose.runtime.*
-import com.example.fuwalo.presentation.PianoScreen
+import androidx.compose.ui.Modifier
+import fuwalo.composeapp.generated.resources.Res
+import fuwalo.composeapp.generated.resources.background
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 
@@ -12,6 +18,18 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App() {
     MaterialTheme {
-        PianoScreen()
+       // PianoScreen()
+        Image(painter = painterResource(Res.drawable.background),
+            contentDescription = "Background", modifier = Modifier.fillMaxSize())
     }
+}
+
+@Composable
+fun Home(){
+Box(modifier = Modifier.fillMaxSize()){
+    Image(painter = painterResource(Res.drawable.background), contentDescription = "")
+    Box(modifier = Modifier.fillMaxSize()){
+
+    }
+}
 }
