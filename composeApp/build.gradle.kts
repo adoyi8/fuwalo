@@ -25,6 +25,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation ("com.github.billthefarmer:mididriver:v1.24")
         }
         commonMain.dependencies {
             implementation(compose.runtime)

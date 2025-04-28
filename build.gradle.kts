@@ -7,3 +7,17 @@ plugins {
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
 }
+buildscript {
+    repositories {
+        mavenCentral()
+        maven("https://jitpack.io")             // ← JitPack :contentReference[oaicite:0]{index=0}
+    }
+}
+
+allprojects {
+    repositories {
+        google()                                // if you use AndroidX/Google libraries
+        mavenCentral()
+        maven("https://jitpack.io")             // ← JitPack :contentReference[oaicite:1]{index=1}
+    }
+}

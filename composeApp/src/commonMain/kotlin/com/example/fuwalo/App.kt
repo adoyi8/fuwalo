@@ -17,25 +17,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import fuwalo.composeapp.generated.resources.Res
 import fuwalo.composeapp.generated.resources.background
 import fuwalo.composeapp.generated.resources.bottom_control_arrow_up
@@ -52,9 +47,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App() {
     MaterialTheme {
-       // PianoScreen()
-        Image(painter = painterResource(Res.drawable.background),
-            contentDescription = "Background", modifier = Modifier.fillMaxSize())
+       Home()
     }
 }
 
@@ -62,19 +55,18 @@ fun App() {
 fun Home(){
 Box(modifier = Modifier.fillMaxSize()){
     Image(painter = painterResource(Res.drawable.background), contentDescription = "", modifier = Modifier.fillMaxSize())
-    Box(modifier = Modifier.fillMaxSize()){
-        Row(modifier = Modifier.fillMaxWidth().height(20.dp).padding(16.dp), horizontalArrangement = Arrangement.SpaceAround){
+
+        Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceAround){
             Row(modifier = Modifier.weight(2f)){
                 Spacer(modifier = Modifier.weight(0.1f))
-                CustomButton(modifier = Modifier.weight(1f))
+                CustomButton(modifier = Modifier.weight(1f).height(20.dp))
                 Spacer(modifier = Modifier.weight(0.1f))
-                CustomButton(modifier = Modifier.weight(2f))
+                CustomButton(modifier = Modifier.weight(2f).height(20.dp))
             }
             Row(Modifier.weight(7f)){
-                
+
             }
-           
-        }
+
 
     }
     Row(modifier = Modifier.fillMaxSize().background(Color.Transparent)){
@@ -93,14 +85,14 @@ Box(modifier = Modifier.fillMaxSize()){
             }
                 }
 
-            Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp)){
-                MenuItemCard(modifier = Modifier.weight(1f))
-                MenuItemCard(modifier =Modifier.weight(1f) )
+            Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp)){
+                MenuItemCard(modifier = Modifier.weight(1f), cardContainerColor = Color(0Xffa6d6d6))
+                MenuItemCard(modifier =Modifier.weight(1f), cardContainerColor = Color(0xffa59efe))
             }
 
-            Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp)){
-                CustomButton(modifier = Modifier.weight(1f).padding(10.dp))
-                CustomButton(modifier = Modifier.weight(1f).padding(10.dp))
+            Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp)){
+                CustomButton(modifier = Modifier.weight(1f).height(70.dp).padding(10.dp), buttonColor = Color(0Xffa6d6d6), shape = RoundedCornerShape(6.dp))
+                CustomButton(modifier = Modifier.weight(1f).height(70.dp).padding(10.dp), buttonColor = Color(0Xffd5d0a6), shape = RoundedCornerShape(6.dp))
             }
 
 
@@ -129,9 +121,9 @@ fun MenuCard(image: DrawableResource = Res.drawable.background){
 
 @Preview
 @Composable
-fun MenuItemCard(image: DrawableResource = Res.drawable.menu_item_piano, modifier: Modifier = Modifier){
-    Card(modifier = modifier.width(174.dp).height(116.dp).padding(10.dp)){
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+fun MenuItemCard(image: DrawableResource = Res.drawable.menu_item_piano, modifier: Modifier = Modifier, cardContainerColor:Color = Color.Unspecified){
+    Card(modifier = modifier.width(194.dp).height(160.dp).padding(top = 10.dp, start = 10.dp, end = 10.dp), colors = CardDefaults.cardColors(contentColor = cardContainerColor)){
+        Box(modifier = Modifier.fillMaxSize().background(cardContainerColor), contentAlignment = Alignment.Center){
             Image(
                 painter = painterResource(image),
                 contentDescription = "",
@@ -142,8 +134,8 @@ fun MenuItemCard(image: DrawableResource = Res.drawable.menu_item_piano, modifie
     }
 }
 @Composable
-fun CustomButton(modifier: Modifier = Modifier, text : String = "", border: BorderStroke? = null, textColor:Color = Color.Unspecified){
-    Button(modifier = modifier, colors = ButtonDefaults.buttonColors(containerColor = Color(0xffC3BFF3)), onClick = {}, content = {
+fun CustomButton(modifier: Modifier = Modifier, text : String = "", border: BorderStroke? = null, textColor:Color = Color.Unspecified, buttonColor:Color = Color(0xffC3BFF3), shape: Shape = ButtonDefaults.shape){
+    Button(modifier = modifier, shape = shape, colors = ButtonDefaults.buttonColors(containerColor = buttonColor), onClick = {}, content = {
         Text(text = text, color = textColor)
     }, border = border)
 }
@@ -177,9 +169,9 @@ fun BottomControls(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.weight(3f))
 
         Row(modifier = Modifier.weight(2f)){
-          CustomButton(text = "RANDOM", textColor = Color.Black)
+          CustomButton(text = "RANDOM", textColor = Color.Black, border = BorderStroke(color = Color(0Xff6660BD), width = 1.dp), buttonColor = Color.White, shape = RoundedCornerShape(8.dp))
             Spacer(Modifier.width(10.dp))
-            CustomButton(text = "START", textColor = Color.White)
+            CustomButton(text = "START", textColor = Color.White, border = BorderStroke(color = Color(0Xff6660BD), width = 1.dp), buttonColor = Color(0Xff6660BD), shape = RoundedCornerShape(8.dp))
         }
 
 
