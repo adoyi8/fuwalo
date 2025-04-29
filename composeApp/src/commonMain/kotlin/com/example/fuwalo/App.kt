@@ -75,10 +75,10 @@ fun App(onKeyPress: (Int) -> Unit) {
     MaterialTheme {
         NavHost(
             navController = navController,
-            startDestination = Route.SplashScreen
+            startDestination = Route.PianoGraph
         ) {
 
-            navigation<Route.SplashScreen>(
+            navigation<Route.PianoGraph>(
                 startDestination = Route.SplashScreen
             ) {
                 composable<Route.SplashScreen>(

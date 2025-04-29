@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 sealed interface Route {
 
 
+    @Serializable
+    data object PianoGraph: Route
 
     @Serializable
     data object HomeScreen: Route
