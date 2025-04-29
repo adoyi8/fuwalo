@@ -1,8 +1,12 @@
 package com.example.fuwalo
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +34,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.platform.Font
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
+import com.example.fuwalo.presentation.NavigationViewModel
+import com.example.fuwalo.presentation.SplashScreen
 import fuwalo.composeapp.generated.resources.Res
 import fuwalo.composeapp.generated.resources.background
 import fuwalo.composeapp.generated.resources.bottom_control_arrow_up
@@ -45,9 +64,50 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun App() {
+fun App(onKeyPress: (Int) -> Unit) {
+    val navController = rememberNavController()
+
+
+
+    LaunchedEffect(Unit) {
+        NavigationViewModel.navController=navController
+    }
     MaterialTheme {
-       Home()
+        NavHost(
+            navController = navController,
+            startDestination = Route.SplashScreen
+        ) {
+
+            navigation<Route.SplashScreen>(
+                startDestination = Route.SplashScreen
+            ) {
+                composable<Route.SplashScreen>(
+                    exitTransition = { slideOutHorizontally() },
+                    popEnterTransition = { slideInHorizontally() }
+                ) {
+
+                    SplashScreen()
+                }
+                composable<Route.HomeScreen>(
+                    exitTransition = { slideOutHorizontally() },
+                    popEnterTransition = { slideInHorizontally() }
+                ) {
+                    Home()
+                }
+
+                composable<Route.KeyBoardScreen>(
+                    exitTransition = { slideOutHorizontally() },
+                    popEnterTransition = { slideInHorizontally() }
+                ) {
+
+                    PianoScreen(onKeyPress = onKeyPress)
+                }
+
+
+            }
+
+        }
+
     }
 }
 
@@ -134,12 +194,29 @@ fun MenuItemCard(image: DrawableResource = Res.drawable.menu_item_piano, modifie
     }
 }
 @Composable
-fun CustomButton(modifier: Modifier = Modifier, text : String = "", border: BorderStroke? = null, textColor:Color = Color.Unspecified, buttonColor:Color = Color(0xffC3BFF3), shape: Shape = ButtonDefaults.shape){
-    Button(modifier = modifier, shape = shape, colors = ButtonDefaults.buttonColors(containerColor = buttonColor), onClick = {}, content = {
+fun CustomButton(modifier: Modifier = Modifier, text : String = "", border: BorderStroke? = null, textColor:Color = Color.Unspecified, buttonColor:Color = Color(0xffC3BFF3), shape: Shape = ButtonDefaults.shape, onClick:()->Unit = {}){
+    Button(modifier = modifier, shape = shape, colors = ButtonDefaults.buttonColors(containerColor = buttonColor), onClick = onClick, content = {
         Text(text = text, color = textColor)
     }, border = border)
 }
 
+
+@Composable
+fun CustomText(text: String, size: TextUnit = 16.sp, color: Color = MaterialTheme.colorScheme.onBackground, modifier: Modifier = Modifier, textAlign: TextAlign = TextAlign.Start, fontWeight: FontWeight = FontWeight.Normal, textDecoration: TextDecoration = TextDecoration.None){
+
+    val fonts = listOf(
+        Font(resource = "fonts/tilt_neon.ttf"),
+    )
+    val fontFamily = FontFamily(
+        Font(
+            resource = "fonts/montserrat.ttf",
+            weight = FontWeight.W400,
+            style = FontStyle.Normal
+        )
+    )
+
+    Text(modifier = modifier, text = text, textAlign = textAlign, style = TextStyle(fontSize = size,color = color, fontWeight = fontWeight, textDecoration = textDecoration, fontFamily = fontFamily))
+}
 
 @Composable
 fun BottomControls(modifier: Modifier = Modifier) {
@@ -171,9 +248,54 @@ fun BottomControls(modifier: Modifier = Modifier) {
         Row(modifier = Modifier.weight(2f)){
           CustomButton(text = "RANDOM", textColor = Color.Black, border = BorderStroke(color = Color(0Xff6660BD), width = 1.dp), buttonColor = Color.White, shape = RoundedCornerShape(8.dp))
             Spacer(Modifier.width(10.dp))
-            CustomButton(text = "START", textColor = Color.White, border = BorderStroke(color = Color(0Xff6660BD), width = 1.dp), buttonColor = Color(0Xff6660BD), shape = RoundedCornerShape(8.dp))
+            CustomButton(onClick = {NavigationViewModel.navController?.navigate(Route.KeyBoardScreen)}, text = "START", textColor = Color.White, border = BorderStroke(color = Color(0Xff6660BD), width = 1.dp), buttonColor = Color(0Xff6660BD), shape = RoundedCornerShape(8.dp), )
         }
 
 
+    }
+}
+
+@Composable
+fun PianoScreen(onKeyPress: (Int) -> Unit) {
+
+    val backgroundColor = remember{Color(0xffbec1ea)}
+    val buttonsColor = remember{Color(0xff7f90c6)}
+    Column(modifier = Modifier.fillMaxSize().background(backgroundColor), horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(modifier = Modifier.fillMaxWidth().padding(8.dp).weight(1f), horizontalArrangement = Arrangement.SpaceBetween){
+            CustomButton(modifier = Modifier.weight(1f), buttonColor = buttonsColor)
+            Spacer(modifier = Modifier.weight(5f))
+            CustomButton(modifier = Modifier.weight(1f), buttonColor = buttonsColor)
+        }
+        Row(modifier = Modifier.fillMaxWidth().weight(1f).padding(8.dp), horizontalArrangement = Arrangement.Center){
+            CustomButton(modifier = Modifier.fillMaxWidth(0.7f).height(25.dp), buttonColor = buttonsColor)
+        }
+        val whiteKeys = listOf(60, 62, 64, 65, 67, 69, 71, 72, 60 , 62) // C4 to C5
+        PianoKeyboard(onKeyPress = onKeyPress)
+    }
+}
+@Composable
+fun PianoKeyboard(onKeyPress: (Int) -> Unit) {
+    // val whiteKeys = listOf(60, 62, 64, 65, 67, 69, 71, 72)
+    val whiteKeys = listOf(
+        60, // C4
+        62, // D4
+        64, // E4
+        65, // F4
+        67, // G4
+        69, // A4
+        71, // B4
+        62, // D4 (again)
+        64  // E4 (again)
+    )// C4 to C5
+    Row(modifier = Modifier.padding(8.dp)) {
+        whiteKeys.forEach { note ->
+            Box(
+                modifier = Modifier
+                    .size(width = 40.dp, height = 160.dp)
+                    .background(Color.White, RoundedCornerShape(4.dp))
+                    .clickable { onKeyPress(note) }
+                    .border(1.dp, Color.Black, RoundedCornerShape(4.dp))
+            ){}
+        }
     }
 }
