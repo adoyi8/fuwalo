@@ -111,7 +111,6 @@ class MainActivity : ComponentActivity(), MidiDriver.OnMidiStartListener {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("SF2 Player", fontSize = 24.sp, modifier = Modifier.padding(16.dp))
                         App(onKeyPress = { note -> playNote(note) })
                     }
                 }

@@ -44,7 +44,7 @@ import fuwalo.composeapp.generated.resources.background
 )
 @Composable
 fun PianoScreen2(){
-Home()
+PianoScreen {  }
 }
 
 

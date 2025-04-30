@@ -79,7 +79,7 @@ fun App(onKeyPress: (Int) -> Unit) {
         ) {
 
             navigation<Route.PianoGraph>(
-                startDestination = Route.SplashScreen
+                startDestination = Route.HomeScreen
             ) {
                 composable<Route.SplashScreen>(
                     exitTransition = { slideOutHorizontally() },
@@ -267,7 +267,7 @@ fun PianoScreen(onKeyPress: (Int) -> Unit) {
             CustomButton(modifier = Modifier.weight(1f), buttonColor = buttonsColor)
         }
         Row(modifier = Modifier.fillMaxWidth().weight(1f).padding(8.dp), horizontalArrangement = Arrangement.Center){
-            CustomButton(modifier = Modifier.fillMaxWidth(0.7f).height(25.dp), buttonColor = buttonsColor)
+            CustomButton(modifier = Modifier.fillMaxWidth(0.7f).height(50.dp), buttonColor = buttonsColor)
         }
         val whiteKeys = listOf(60, 62, 64, 65, 67, 69, 71, 72, 60 , 62) // C4 to C5
         PianoKeyboard(onKeyPress = onKeyPress)
@@ -287,15 +287,33 @@ fun PianoKeyboard(onKeyPress: (Int) -> Unit) {
         62, // D4 (again)
         64  // E4 (again)
     )// C4 to C5
+
+    val tones = listOf(
+        Tone("C4",60),
+        Tone("D4",62),
+        Tone("E4",64),
+        Tone("F4",65),
+        Tone("G4",67),
+        Tone("A4",69),
+        Tone("B4",71),
+        Tone("D4",62),
+        Tone("E4",64),
+    )// C4 to C5
     Row(modifier = Modifier.padding(8.dp)) {
-        whiteKeys.forEach { note ->
+        tones.forEach { tone ->
             Box(
                 modifier = Modifier
                     .size(width = 40.dp, height = 160.dp)
                     .background(Color.White, RoundedCornerShape(4.dp))
-                    .clickable { onKeyPress(note) }
+                    .clickable { onKeyPress(tone.value) }
                     .border(1.dp, Color.Black, RoundedCornerShape(4.dp))
-            ){}
+            ){
+                CustomText(tone.note, modifier = Modifier.align(Alignment.BottomCenter).padding(8.dp), fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
+data class Tone(
+    val note:String,
+    val value:Int
+)
