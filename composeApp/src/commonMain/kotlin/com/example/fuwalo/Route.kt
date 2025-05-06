@@ -16,4 +16,6 @@ sealed interface Route {
 
     @Serializable
     data object SplashScreen: Route
+    @Serializable
+    data object PianoLearningScreen: Route
 }

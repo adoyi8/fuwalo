@@ -26,7 +26,6 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            implementation ("com.github.billthefarmer:mididriver:v1.24")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -58,22 +57,44 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        ndk {
+            abiFilters += listOf("x86", "armeabi-v7a", "arm64-v8a","x86_64") // or just "x86" for testing
+        }
+        ndkVersion = "28.1.13356709"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/cpp/fluidsynth/lib")
+        }
+    }
+// Update to match your system setup
 }
+
 
 dependencies {
     debugImplementation(compose.uiTooling)

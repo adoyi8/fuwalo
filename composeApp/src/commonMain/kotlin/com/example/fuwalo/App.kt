@@ -1,5 +1,7 @@
 package com.example.fuwalo
 
+import CustomHorizontalScrollbar
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
@@ -7,14 +9,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -35,8 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -48,14 +51,23 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.fuwalo.data.playNote
 import com.example.fuwalo.presentation.NavigationViewModel
 import com.example.fuwalo.presentation.SplashScreen
+import com.example.fuwalo.presentation.dialogs.SelectInstrumentDialog
+import com.example.fuwalo.presentation.keyboard.EightyEightKeysPiano
+import com.example.fuwalo.presentation.keyboard.PianoLearningUI
+import com.example.fuwalo.presentation.keyboard.TenKeysPiano
 import fuwalo.composeapp.generated.resources.Res
+import fuwalo.composeapp.generated.resources.back_arrow
 import fuwalo.composeapp.generated.resources.background
 import fuwalo.composeapp.generated.resources.bottom_control_arrow_up
 import fuwalo.composeapp.generated.resources.fu_menu
 import fuwalo.composeapp.generated.resources.fuhome
+import fuwalo.composeapp.generated.resources.menu_image
 import fuwalo.composeapp.generated.resources.menu_item_piano
+import fuwalo.composeapp.generated.resources.multiple_instrument_image
+import fuwalo.composeapp.generated.resources.one_instrument_image
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -66,6 +78,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App(onKeyPress: (Int) -> Unit) {
     val navController = rememberNavController()
+
+    playNote = onKeyPress
 
 
 
@@ -79,7 +93,7 @@ fun App(onKeyPress: (Int) -> Unit) {
         ) {
 
             navigation<Route.PianoGraph>(
-                startDestination = Route.HomeScreen
+                startDestination = Route.SplashScreen
             ) {
                 composable<Route.SplashScreen>(
                     exitTransition = { slideOutHorizontally() },
@@ -99,8 +113,15 @@ fun App(onKeyPress: (Int) -> Unit) {
                     exitTransition = { slideOutHorizontally() },
                     popEnterTransition = { slideInHorizontally() }
                 ) {
+                   // ScrollableRowWithCustomScrollbar()
+                   PianoScreen(onKeyPress = onKeyPress)
+                }
+                composable<Route.PianoLearningScreen>(
+                    exitTransition = { slideOutHorizontally() },
+                    popEnterTransition = { slideInHorizontally() }
+                ) {
 
-                    PianoScreen(onKeyPress = onKeyPress)
+                    PianoLearningUI()
                 }
 
 
@@ -246,7 +267,7 @@ fun BottomControls(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.weight(3f))
 
         Row(modifier = Modifier.weight(2f)){
-          CustomButton(text = "RANDOM", textColor = Color.Black, border = BorderStroke(color = Color(0Xff6660BD), width = 1.dp), buttonColor = Color.White, shape = RoundedCornerShape(8.dp))
+          CustomButton(onClick = {NavigationViewModel.navController?.navigate(Route.PianoLearningScreen)}, text = "RANDOM", textColor = Color.Black, border = BorderStroke(color = Color(0Xff6660BD), width = 1.dp), buttonColor = Color.White, shape = RoundedCornerShape(8.dp))
             Spacer(Modifier.width(10.dp))
             CustomButton(onClick = {NavigationViewModel.navController?.navigate(Route.KeyBoardScreen)}, text = "START", textColor = Color.White, border = BorderStroke(color = Color(0Xff6660BD), width = 1.dp), buttonColor = Color(0Xff6660BD), shape = RoundedCornerShape(8.dp), )
         }
@@ -257,6 +278,91 @@ fun BottomControls(modifier: Modifier = Modifier) {
 
 @Composable
 fun PianoScreen(onKeyPress: (Int) -> Unit) {
+
+    val backgroundColor = remember { Color(0xffbec1ea) }
+    val showDialog = MutableTransitionState(false)
+
+    val imageSize = remember { 60.dp }
+    val stateHorizontal = rememberScrollState(0)
+
+            Column(
+                modifier = Modifier.fillMaxSize().background(backgroundColor),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).weight(1f),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(modifier = Modifier.weight(1f)) {
+                        Image(
+                            modifier = Modifier.size(imageSize),
+                            painter = painterResource(Res.drawable.back_arrow),
+                            contentDescription = ""
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.weight(5f))
+                    Row(modifier = Modifier.weight(3f)) {
+                        Image(
+                            modifier = Modifier.size(imageSize),
+                            painter = painterResource(Res.drawable.one_instrument_image),
+                            contentDescription = ""
+                        )
+                        Image(
+                            modifier = Modifier.size(imageSize)
+                                .clickable(onClick = {
+                                    showDialog.targetState = true
+                                }),
+                            painter = painterResource(Res.drawable.multiple_instrument_image),
+                            contentDescription = ""
+                        )
+
+                    }
+                    Row(modifier = Modifier.weight(1f)) {
+                        Image(
+                            modifier = Modifier.size(imageSize),
+                            painter = painterResource(Res.drawable.menu_image),
+                            contentDescription = ""
+                        )
+                    }
+
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CustomHorizontalScrollbar(
+                        scrollState = stateHorizontal,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                    )
+                }
+                Box(
+                    modifier = Modifier.fillMaxWidth().weight(5f)
+
+                ) {
+
+
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                            .horizontalScroll(stateHorizontal).align(Alignment.BottomStart).padding(top = 16.dp)
+                    ) {
+
+
+                EightyEightKeysPiano(modifier = Modifier.fillMaxHeight().widthIn(min = 0.dp, max = 3000.dp))
+            }
+
+
+        }
+
+    }
+      SelectInstrumentDialog(showDialog)
+}
+@Composable
+fun PianoScreenBackUp(onKeyPress: (Int) -> Unit) {
 
     val backgroundColor = remember{Color(0xffbec1ea)}
     val buttonsColor = remember{Color(0xff7f90c6)}
@@ -317,3 +423,8 @@ data class Tone(
     val note:String,
     val value:Int
 )
+// Simple platform check
+fun isDesktop(): Boolean =
+    System.getProperty("os.name").contains("windows", ignoreCase = true) ||
+            System.getProperty("os.name").contains("linux", ignoreCase = true) ||
+            System.getProperty("os.name").contains("mac", ignoreCase = true)

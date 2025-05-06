@@ -1,6 +1,10 @@
 package com.example.fuwalo
 
 
+
+import PianoKeyboardFourKeys
+import PianoKeyboardThreeKeys
+import PianoKeyboardTwoKeys
 import androidx.compose.foundation.Image
 import androidx.compose.ui.tooling.preview.Preview
 
@@ -19,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,14 +33,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fuwalo.presentation.keyboard.EightyEightKeysPiano
+import com.example.fuwalo.presentation.keyboard.FallingNote
+import com.example.fuwalo.presentation.keyboard.FallingNotesScreen
+import com.example.fuwalo.presentation.keyboard.PianoLearningUI
 import fuwalo.composeapp.generated.resources.Res
 import fuwalo.composeapp.generated.resources.background
-
-
-
-
-
-
 
 
 @Preview(
@@ -44,8 +47,10 @@ import fuwalo.composeapp.generated.resources.background
 )
 @Composable
 fun PianoScreen2(){
-PianoScreen {  }
-}
+    PianoScreen({})
+    }
+
+
 
 
 
