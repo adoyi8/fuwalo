@@ -51,11 +51,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.fuwalo.data.loadSoundFonts
 import com.example.fuwalo.data.playNote
 import com.example.fuwalo.presentation.NavigationViewModel
 import com.example.fuwalo.presentation.SplashScreen
 import com.example.fuwalo.presentation.dialogs.SelectInstrumentDialog
 import com.example.fuwalo.presentation.keyboard.EightyEightKeysPiano
+import com.example.fuwalo.presentation.keyboard.EightyEightKeysPianoGemini
 import com.example.fuwalo.presentation.keyboard.PianoLearningUI
 import com.example.fuwalo.presentation.keyboard.TenKeysPiano
 import fuwalo.composeapp.generated.resources.Res
@@ -76,10 +78,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun App(onKeyPress: (Int) -> Unit) {
+fun App(onKeyPress: (Int) -> Unit, loadSoundFont:(String) ->Unit ={}) {
     val navController = rememberNavController()
 
     playNote = onKeyPress
+    loadSoundFonts = loadSoundFont
 
 
 
@@ -352,7 +355,7 @@ fun PianoScreen(onKeyPress: (Int) -> Unit) {
                     ) {
 
 
-                EightyEightKeysPiano(modifier = Modifier.fillMaxHeight().widthIn(min = 0.dp, max = 3000.dp))
+                EightyEightKeysPianoGemini(modifier = Modifier.fillMaxHeight().widthIn(min = 0.dp, max = 3000.dp), onKeyPress = {}, onKeyRelease = {})
             }
 
 

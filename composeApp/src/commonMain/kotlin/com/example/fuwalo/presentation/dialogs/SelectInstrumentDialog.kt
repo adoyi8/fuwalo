@@ -3,6 +3,7 @@ package com.example.fuwalo.presentation.dialogs
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.fuwalo.CustomButton
+import com.example.fuwalo.data.loadSoundFonts
 import fuwalo.composeapp.generated.resources.Res
 import fuwalo.composeapp.generated.resources.add_icon
 import fuwalo.composeapp.generated.resources.select_instrument_guitar
@@ -46,16 +48,34 @@ fun SelectInstrumentDialog( showDialog: MutableTransitionState<Boolean>){
                             painter = painterResource(Res.drawable.select_instrument_piano),
                             contentDescription = "",
                             modifier = Modifier.size(75.dp)
+                                .clickable(
+                                    onClick = {
+                                        loadSoundFonts("KawaiStereoGrand.sf3")
+                                        showDialog.targetState = false
+                                    }
+                                )
                         )
                         Image(
                             painter = painterResource(Res.drawable.select_instrument_guitar),
                             contentDescription = "",
                             modifier = Modifier.size(75.dp)
+                                .clickable(
+                                    onClick = {
+                                        loadSoundFonts("instrument_19.sf2")
+                                        showDialog.targetState = false
+                                    }
+                                )
                         )
                         Image(
                             painter = painterResource(Res.drawable.select_instrument_trumpet),
                             contentDescription = "",
                             modifier = Modifier.size(75.dp)
+                                .clickable(
+                                    onClick = {
+                                        loadSoundFonts("instrument_39.sf2")
+                                        showDialog.targetState = false
+                                    }
+                                )
                         )
 
                     }

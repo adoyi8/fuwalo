@@ -82,7 +82,10 @@ class MainActivity : ComponentActivity(){
     }
 
 
-
+fun loadSoundFonts(soundFonts: String){
+    synthManager.loadSF(soundFonts)
+    synthManager.setVolume(127)
+}
 
 
     fun playNoteSf2(noteNumber: Int) {
