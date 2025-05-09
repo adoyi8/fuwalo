@@ -53,6 +53,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.fuwalo.data.loadSoundFonts
 import com.example.fuwalo.data.playNote
+import com.example.fuwalo.data.releaseNote
 import com.example.fuwalo.presentation.NavigationViewModel
 import com.example.fuwalo.presentation.SplashScreen
 import com.example.fuwalo.presentation.dialogs.SelectInstrumentDialog
@@ -78,10 +79,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun App(onKeyPress: (Int) -> Unit, loadSoundFont:(String) ->Unit ={}) {
+fun App(onKeyPress: (Int) -> Unit, onKeyRelease: (Int) -> Unit = {},loadSoundFont:(String) ->Unit ={}) {
     val navController = rememberNavController()
 
     playNote = onKeyPress
+    releaseNote = onKeyRelease
     loadSoundFonts = loadSoundFont
 
 

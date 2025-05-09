@@ -29,6 +29,8 @@ import com.example.fuwalo.core.utils.Util.WHITE_KEY_WIDTH
 import com.example.fuwalo.core.utils.Util.getBlackKeyOffSet
 import com.example.fuwalo.data.PianoKey
 import com.example.fuwalo.data.generatePianoKeys
+import com.example.fuwalo.data.playNote
+import com.example.fuwalo.data.releaseNote
 
 // Assuming you have a data class like this for your keys
 
@@ -80,7 +82,7 @@ fun WhiteKey(
                             // If a pointer went down within this Composable's bounds
                             if (change.changedToDown()) {
                                 isPressed = true // Set state to pressed
-                                onKeyPress(pianoKey.midi) // Trigger the press action
+                                playNote(pianoKey.midi) // Trigger the press action
                                 change.consume() // Consume the event so it's not passed further
                             }
                             // If a pointer went up (that was previously down somewhere)
@@ -90,7 +92,7 @@ fun WhiteKey(
                                 // For a basic piano, triggering release on any up event is often sufficient,
                                 // assuming your sound engine can handle stopping a note that might already be stopped.
                                 isPressed = false // Set state to not pressed
-                                onKeyRelease(pianoKey.midi) // Trigger the release action
+                                releaseNote(pianoKey.midi) // Trigger the release action
                                 change.consume() // Consume the event
                             }
                         }
@@ -146,12 +148,12 @@ fun BlackKey(
                         event.changes.forEach { change ->
                             if (change.changedToDown()) {
                                 isPressed = true
-                                onKeyPress(pianoKey.midi)
+                                playNote(pianoKey.midi)
                                 change.consume()
                             }
                             if (change.changedToUp()) {
                                 isPressed = false
-                                onKeyRelease(pianoKey.midi)
+                                releaseNote(pianoKey.midi)
                                 change.consume()
                             }
                         }
