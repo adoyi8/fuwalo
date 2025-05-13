@@ -50,5 +50,6 @@ fun generatePianoKeys(): List<PianoKey> {
     return keys
 }
 var playNote: (Int) -> Unit = {}
+var playNoteSustain: (Int) -> Unit = {}
 var releaseNote: (Int) -> Unit = {}
 var loadSoundFonts: (String) -> Unit = {}

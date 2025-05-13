@@ -30,6 +30,7 @@ import com.example.fuwalo.core.utils.Util.getBlackKeyOffSet
 import com.example.fuwalo.data.PianoKey
 import com.example.fuwalo.data.generatePianoKeys
 import com.example.fuwalo.data.playNote
+import com.example.fuwalo.data.playNoteSustain
 import com.example.fuwalo.data.releaseNote
 
 // Assuming you have a data class like this for your keys
@@ -59,8 +60,9 @@ fun WhiteKey(
     pianoKey: PianoKey,
     onKeyPress: (Int) -> Unit, // Lambda to call when key is pressed down
     onKeyRelease: (Int) -> Unit, // Lambda to call when key is released
-    modifier: Modifier = Modifier // Modifier should be the last parameter
-) {
+    modifier: Modifier = Modifier, // Modifier should be the last parameter
+    sustainPedal: MutableState<Boolean>
+    ) {
     // State to track if the key is currently being pressed for visual feedback
     var isPressed by remember { mutableStateOf(false) }
 
@@ -82,7 +84,12 @@ fun WhiteKey(
                             // If a pointer went down within this Composable's bounds
                             if (change.changedToDown()) {
                                 isPressed = true // Set state to pressed
-                                playNote(pianoKey.midi) // Trigger the press action
+                                if(sustainPedal.value) {
+                                    playNoteSustain(pianoKey.midi)
+                                }// Trigger the press action
+                                else{
+                                    playNote(pianoKey.midi)
+                                }
                                 change.consume() // Consume the event so it's not passed further
                             }
                             // If a pointer went up (that was previously down somewhere)
@@ -129,7 +136,8 @@ fun BlackKey(
     pianoKey: PianoKey,
     onKeyPress: (Int) -> Unit,
     onKeyRelease: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sustainPedal: MutableState<Boolean>
 ) {
     var isPressed by remember { mutableStateOf(false) }
 
@@ -148,7 +156,12 @@ fun BlackKey(
                         event.changes.forEach { change ->
                             if (change.changedToDown()) {
                                 isPressed = true
-                                playNote(pianoKey.midi)
+                                if(sustainPedal.value) {
+                                    playNoteSustain(pianoKey.midi)
+                                }// Trigger the press action
+                                else{
+                                    playNote(pianoKey.midi)
+                                }
                                 change.consume()
                             }
                             if (change.changedToUp()) {
@@ -174,7 +187,8 @@ fun BlackKey(
 fun PianoKeyboardFourKeysGemini(
     firstWhite: PianoKey, firstBlack: PianoKey, secondWhite: PianoKey, secondBlack: PianoKey, thirdWhite: PianoKey, thirdBlack: PianoKey, fourthWhite: PianoKey,
     onKeyPress: (Int) -> Unit, // Accept callbacks
-    onKeyRelease: (Int) -> Unit // Accept callbacks
+    onKeyRelease: (Int) -> Unit,
+    sustainPedal: MutableState<Boolean>// Accept callbacks
 ) {
     Surface(
         color = Color(0xFFEFEFFF), // Or remove Surface if you handle padding/background in the parent
@@ -183,10 +197,10 @@ fun PianoKeyboardFourKeysGemini(
         Box {
             // White keys: C4 and D4
             Row {
-                WhiteKey(pianoKey = firstWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease) // Pass callbacks down
-                WhiteKey(pianoKey = secondWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease)
-                WhiteKey(pianoKey = thirdWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease)
-                WhiteKey(pianoKey = fourthWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease)
+                WhiteKey(pianoKey = firstWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal) // Pass callbacks down
+                WhiteKey(pianoKey = secondWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease,sustainPedal = sustainPedal)
+                WhiteKey(pianoKey = thirdWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal)
+                WhiteKey(pianoKey = fourthWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal)
             }
 
             // Black keys positioned on top
@@ -194,9 +208,9 @@ fun PianoKeyboardFourKeysGemini(
             // to align them visually and for touch detection.
             // Use absolute positioning or a ZStack/Box with alignment if needed.
             // The current offset approach might be okay if the Box handles layering.
-            BlackKey(pianoKey = firstBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(1))) // Pass callbacks
-            BlackKey(pianoKey = secondBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(2)))
-            BlackKey(pianoKey = thirdBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(3)))
+            BlackKey(pianoKey = firstBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(1)), sustainPedal = sustainPedal) // Pass callbacks
+            BlackKey(pianoKey = secondBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(2)), sustainPedal = sustainPedal)
+            BlackKey(pianoKey = thirdBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(3)), sustainPedal = sustainPedal)
         }
     }
 }
@@ -205,7 +219,8 @@ fun PianoKeyboardFourKeysGemini(
 fun PianoKeyboardThreeKeysGemini(
     firstWhite: PianoKey, firstBlack: PianoKey, secondWhite: PianoKey, secondBlack: PianoKey, thirdWhite: PianoKey,
     onKeyPress: (Int) -> Unit, // Accept callbacks
-    onKeyRelease: (Int) -> Unit // Accept callbacks
+    onKeyRelease: (Int) -> Unit,
+    sustainPedal: MutableState<Boolean>
 ) {
     Surface(
         color = Color(0xFFEFEFFF), // Or remove Surface if you handle padding/background in the parent
@@ -214,9 +229,9 @@ fun PianoKeyboardThreeKeysGemini(
         Box {
             // White keys: C4 and D4
             Row {
-                WhiteKey(pianoKey = firstWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease) // Pass callbacks down
-                WhiteKey(pianoKey = secondWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease)
-                WhiteKey(pianoKey = thirdWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease)
+                WhiteKey(pianoKey = firstWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal) // Pass callbacks down
+                WhiteKey(pianoKey = secondWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal)
+                WhiteKey(pianoKey = thirdWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal)
             }
 
             // Black keys positioned on top
@@ -224,8 +239,8 @@ fun PianoKeyboardThreeKeysGemini(
             // to align them visually and for touch detection.
             // Use absolute positioning or a ZStack/Box with alignment if needed.
             // The current offset approach might be okay if the Box handles layering.
-            BlackKey(pianoKey = firstBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(1))) // Pass callbacks
-            BlackKey(pianoKey = secondBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(2)))
+            BlackKey(pianoKey = firstBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(1)), sustainPedal = sustainPedal) // Pass callbacks
+            BlackKey(pianoKey = secondBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(2)), sustainPedal = sustainPedal)
         }
     }
 }
@@ -234,7 +249,8 @@ fun PianoKeyboardThreeKeysGemini(
 fun PianoKeyboardTwoKeysGemini(
     firstWhite: PianoKey, firstBlack: PianoKey, secondWhite: PianoKey,
     onKeyPress: (Int) -> Unit, // Accept callbacks
-    onKeyRelease: (Int) -> Unit // Accept callbacks
+    onKeyRelease: (Int) -> Unit, // Accept callbacks,
+    sustainPedal: MutableState<Boolean>
 ) {
     Surface(
         color = Color(0xFFEFEFFF), // Or remove Surface if you handle padding/background in the parent
@@ -243,8 +259,8 @@ fun PianoKeyboardTwoKeysGemini(
         Box {
             // White keys: C4 and D4
             Row {
-                WhiteKey(pianoKey = firstWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease) // Pass callbacks down
-                WhiteKey(pianoKey = secondWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease)
+                WhiteKey(pianoKey = firstWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease,sustainPedal = sustainPedal ) // Pass callbacks down
+                WhiteKey(pianoKey = secondWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal)
             }
 
             // Black keys positioned on top
@@ -252,7 +268,7 @@ fun PianoKeyboardTwoKeysGemini(
             // to align them visually and for touch detection.
             // Use absolute positioning or a ZStack/Box with alignment if needed.
             // The current offset approach might be okay if the Box handles layering.
-            BlackKey(pianoKey = firstBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(1))) // Pass callbacks
+            BlackKey(pianoKey = firstBlack, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, modifier = Modifier.offset(x = getBlackKeyOffSet(1)), sustainPedal = sustainPedal) // Pass callbacks
         }
     }
 }
@@ -261,7 +277,9 @@ fun PianoKeyboardTwoKeysGemini(
 fun PianoKeyboardOneKeyGemini(
     firstWhite: PianoKey,
     onKeyPress: (Int) -> Unit, // Accept callbacks
-    onKeyRelease: (Int) -> Unit // Accept callbacks
+    onKeyRelease: (Int) -> Unit,
+    sustainPedal: MutableState<Boolean>
+
 ) {
     Surface(
         color = Color(0xFFEFEFFF), // Or remove Surface if you handle padding/background in the parent
@@ -270,7 +288,7 @@ fun PianoKeyboardOneKeyGemini(
         Box {
             // White keys: C4 and D4
             Row {
-                WhiteKey(pianoKey = firstWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease) // Pass callbacks down
+                WhiteKey(pianoKey = firstWhite, onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal) // Pass callbacks down
             }
 
             // Black keys positioned on top
@@ -287,28 +305,29 @@ fun PianoKeyboardOneKeyGemini(
 fun EightyEightKeysPianoGemini(
     modifier: Modifier = Modifier, // Use the passed modifier
     onKeyPress: (Int) -> Unit, // Accept key press action
-    onKeyRelease: (Int) -> Unit // Accept key release action
+    onKeyRelease: (Int) -> Unit, // Accept key release action
+    sustainPedal: MutableState<Boolean>
 ){
     val pianoKeys = remember { generatePianoKeys() } // Implement this function
 
     Row(modifier = modifier){
         // Pass the onKeyPress and onKeyRelease lambdas to all child keyboard Composables
-        PianoKeyboardTwoKeysGemini(pianoKeys[0],pianoKeys[1], pianoKeys[2], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease)
-        PianoKeyboardThreeKeysGemini(pianoKeys[3],pianoKeys[4], pianoKeys[5], pianoKeys[6],pianoKeys[7], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardFourKeysGemini(pianoKeys[8],pianoKeys[9], pianoKeys[10], pianoKeys[11],pianoKeys[12], pianoKeys[13],pianoKeys[14], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardThreeKeysGemini(pianoKeys[15],pianoKeys[16], pianoKeys[17], pianoKeys[18],pianoKeys[19], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardFourKeysGemini(pianoKeys[20],pianoKeys[21], pianoKeys[22], pianoKeys[23],pianoKeys[24], pianoKeys[25],pianoKeys[26], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardThreeKeysGemini(pianoKeys[27],pianoKeys[28], pianoKeys[29], pianoKeys[30],pianoKeys[31], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardFourKeysGemini(pianoKeys[32],pianoKeys[33], pianoKeys[34], pianoKeys[35],pianoKeys[36], pianoKeys[37],pianoKeys[38], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardThreeKeysGemini(pianoKeys[39],pianoKeys[40], pianoKeys[41], pianoKeys[42],pianoKeys[43], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardFourKeysGemini(pianoKeys[44],pianoKeys[45], pianoKeys[46], pianoKeys[47],pianoKeys[48], pianoKeys[49],pianoKeys[50], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardThreeKeysGemini(pianoKeys[51],pianoKeys[52], pianoKeys[53], pianoKeys[54],pianoKeys[55], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardFourKeysGemini(pianoKeys[56],pianoKeys[57], pianoKeys[58], pianoKeys[59],pianoKeys[60], pianoKeys[61],pianoKeys[62], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardThreeKeysGemini(pianoKeys[63],pianoKeys[64], pianoKeys[65], pianoKeys[66],pianoKeys[67], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardFourKeysGemini(pianoKeys[68],pianoKeys[69], pianoKeys[70], pianoKeys[71],pianoKeys[72], pianoKeys[73],pianoKeys[74], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardThreeKeysGemini(pianoKeys[75],pianoKeys[76], pianoKeys[77], pianoKeys[78],pianoKeys[79], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease )
-        PianoKeyboardFourKeysGemini(pianoKeys[80],pianoKeys[81], pianoKeys[82], pianoKeys[83],pianoKeys[84], pianoKeys[85],pianoKeys[86], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease)
-        PianoKeyboardOneKeyGemini(pianoKeys[87], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease)
+        PianoKeyboardTwoKeysGemini(pianoKeys[0],pianoKeys[1], pianoKeys[2], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal)
+        PianoKeyboardThreeKeysGemini(pianoKeys[3],pianoKeys[4], pianoKeys[5], pianoKeys[6],pianoKeys[7], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal )
+        PianoKeyboardFourKeysGemini(pianoKeys[8],pianoKeys[9], pianoKeys[10], pianoKeys[11],pianoKeys[12], pianoKeys[13],pianoKeys[14], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease , sustainPedal = sustainPedal)
+        PianoKeyboardThreeKeysGemini(pianoKeys[15],pianoKeys[16], pianoKeys[17], pianoKeys[18],pianoKeys[19], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal )
+        PianoKeyboardFourKeysGemini(pianoKeys[20],pianoKeys[21], pianoKeys[22], pianoKeys[23],pianoKeys[24], pianoKeys[25],pianoKeys[26], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease , sustainPedal = sustainPedal)
+        PianoKeyboardThreeKeysGemini(pianoKeys[27],pianoKeys[28], pianoKeys[29], pianoKeys[30],pianoKeys[31], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal )
+        PianoKeyboardFourKeysGemini(pianoKeys[32],pianoKeys[33], pianoKeys[34], pianoKeys[35],pianoKeys[36], pianoKeys[37],pianoKeys[38], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease , sustainPedal = sustainPedal)
+        PianoKeyboardThreeKeysGemini(pianoKeys[39],pianoKeys[40], pianoKeys[41], pianoKeys[42],pianoKeys[43], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal )
+        PianoKeyboardFourKeysGemini(pianoKeys[44],pianoKeys[45], pianoKeys[46], pianoKeys[47],pianoKeys[48], pianoKeys[49],pianoKeys[50], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease , sustainPedal = sustainPedal)
+        PianoKeyboardThreeKeysGemini(pianoKeys[51],pianoKeys[52], pianoKeys[53], pianoKeys[54],pianoKeys[55], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal )
+        PianoKeyboardFourKeysGemini(pianoKeys[56],pianoKeys[57], pianoKeys[58], pianoKeys[59],pianoKeys[60], pianoKeys[61],pianoKeys[62], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease , sustainPedal = sustainPedal)
+        PianoKeyboardThreeKeysGemini(pianoKeys[63],pianoKeys[64], pianoKeys[65], pianoKeys[66],pianoKeys[67], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal )
+        PianoKeyboardFourKeysGemini(pianoKeys[68],pianoKeys[69], pianoKeys[70], pianoKeys[71],pianoKeys[72], pianoKeys[73],pianoKeys[74], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease , sustainPedal = sustainPedal)
+        PianoKeyboardThreeKeysGemini(pianoKeys[75],pianoKeys[76], pianoKeys[77], pianoKeys[78],pianoKeys[79], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal )
+        PianoKeyboardFourKeysGemini(pianoKeys[80],pianoKeys[81], pianoKeys[82], pianoKeys[83],pianoKeys[84], pianoKeys[85],pianoKeys[86], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal)
+        PianoKeyboardOneKeyGemini(pianoKeys[87], onKeyPress = onKeyPress, onKeyRelease = onKeyRelease, sustainPedal = sustainPedal)
     }
 }
 

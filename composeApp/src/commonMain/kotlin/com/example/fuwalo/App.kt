@@ -53,6 +53,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.fuwalo.data.loadSoundFonts
 import com.example.fuwalo.data.playNote
+import com.example.fuwalo.data.playNoteSustain
 import com.example.fuwalo.data.releaseNote
 import com.example.fuwalo.presentation.NavigationViewModel
 import com.example.fuwalo.presentation.SplashScreen
@@ -67,6 +68,7 @@ import fuwalo.composeapp.generated.resources.background
 import fuwalo.composeapp.generated.resources.bottom_control_arrow_up
 import fuwalo.composeapp.generated.resources.fu_menu
 import fuwalo.composeapp.generated.resources.fuhome
+import fuwalo.composeapp.generated.resources.harp
 import fuwalo.composeapp.generated.resources.menu_image
 import fuwalo.composeapp.generated.resources.menu_item_piano
 import fuwalo.composeapp.generated.resources.multiple_instrument_image
@@ -79,10 +81,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun App(onKeyPress: (Int) -> Unit, onKeyRelease: (Int) -> Unit = {},loadSoundFont:(String) ->Unit ={}) {
+fun App(onKeyPress: (Int) -> Unit, onKeyRelease: (Int) -> Unit = {}, playNoteSustains:(Int)->Unit = {}, loadSoundFont:(String) ->Unit ={}) {
     val navController = rememberNavController()
 
     playNote = onKeyPress
+    playNoteSustain = playNoteSustains
     releaseNote = onKeyRelease
     loadSoundFonts = loadSoundFont
 
@@ -139,8 +142,7 @@ fun App(onKeyPress: (Int) -> Unit, onKeyRelease: (Int) -> Unit = {},loadSoundFon
 
 @Composable
 fun Home(){
-Box(modifier = Modifier.fillMaxSize()){
-    Image(painter = painterResource(Res.drawable.background), contentDescription = "", modifier = Modifier.fillMaxSize())
+Box(modifier = Modifier.fillMaxSize().background(Color(0XFF9394C8))){
 
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceAround){
             Row(modifier = Modifier.weight(2f)){
@@ -159,9 +161,9 @@ Box(modifier = Modifier.fillMaxSize()){
         Row(modifier = Modifier.fillMaxHeight().weight(1f)){
 
         }
-        Column(modifier = Modifier.fillMaxHeight().weight(1f).background(color = Color(0x0F0F1669))){
-            Card(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp), colors = CardDefaults.cardColors(contentColor = Color(0XFFFED2E200))){
-            Row(modifier = Modifier.fillMaxWidth().height(45.dp).padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically){
+        Column(modifier = Modifier.fillMaxHeight().weight(1f).background(color = Color(0XFF0F0F16).copy(alpha = 0.5f))){
+            Card(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp), colors = CardDefaults.cardColors(containerColor = Color(0XFFFED2E2))){
+            Row(modifier = Modifier.fillMaxWidth().height(45.dp).padding(horizontal = 16.dp).background(Color.Transparent), verticalAlignment = Alignment.CenterVertically){
                 Spacer(Modifier.weight(4f))
                 Row(Modifier.weight(2f)) {
                     MenuCard(image = Res.drawable.fu_menu)
@@ -173,7 +175,7 @@ Box(modifier = Modifier.fillMaxSize()){
 
             Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp)){
                 MenuItemCard(modifier = Modifier.weight(1f), cardContainerColor = Color(0Xffa6d6d6))
-                MenuItemCard(modifier =Modifier.weight(1f), cardContainerColor = Color(0xffa59efe))
+                MenuItemCard(modifier =Modifier.weight(1f), cardContainerColor = Color(0xffa59efe), image = Res.drawable.harp)
             }
 
             Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp)){
@@ -286,6 +288,7 @@ fun PianoScreen(onKeyPress: (Int) -> Unit) {
 
     val backgroundColor = remember { Color(0xffbec1ea) }
     val showDialog = MutableTransitionState(false)
+    val sustainPedal = remember { mutableStateOf(true) }
 
     val imageSize = remember { 60.dp }
     val stateHorizontal = rememberScrollState(0)
@@ -308,9 +311,12 @@ fun PianoScreen(onKeyPress: (Int) -> Unit) {
                     }
 
                     Spacer(modifier = Modifier.weight(5f))
-                    Row(modifier = Modifier.weight(3f)) {
+                    Row(modifier = Modifier.weight(3f).padding(bottom = 3.dp)) {
                         Image(
-                            modifier = Modifier.size(imageSize),
+                            modifier = Modifier.size(imageSize).border(width = if(sustainPedal.value) 2.dp else 0.dp, color = if(sustainPedal.value) Color(0xff6E80B7) else Color.Transparent)
+                                .clickable(onClick = {
+                                    sustainPedal.value = sustainPedal.value.not()
+                                }),
                             painter = painterResource(Res.drawable.one_instrument_image),
                             contentDescription = ""
                         )
@@ -353,11 +359,13 @@ fun PianoScreen(onKeyPress: (Int) -> Unit) {
 
                     Box(
                         modifier = Modifier.fillMaxSize()
-                            .horizontalScroll(stateHorizontal).align(Alignment.BottomStart).padding(top = 16.dp)
+                            .horizontalScroll(state = stateHorizontal, enabled = false)
+
+                            .align(Alignment.BottomStart).padding(top = 16.dp)
                     ) {
 
 
-                EightyEightKeysPianoGemini(modifier = Modifier.fillMaxHeight().widthIn(min = 0.dp, max = 3000.dp), onKeyPress = {}, onKeyRelease = {})
+                EightyEightKeysPianoGemini(modifier = Modifier.fillMaxHeight().widthIn(min = 0.dp, max = 3000.dp), onKeyPress = {}, onKeyRelease = {}, sustainPedal)
             }
 
 

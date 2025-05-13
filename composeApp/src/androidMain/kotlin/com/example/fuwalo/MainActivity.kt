@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity(){
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        App(onKeyPress = { note -> playNoteSf2(note) }, onKeyRelease = { note -> release(note) }, loadSoundFont = { soundFont -> loadSoundFonts(soundFont) }, )
+                        App(onKeyPress = { note -> playNoteSf2(note) }, onKeyRelease = { note -> release(note) }, playNoteSustains = { note -> playNoteSustain(note) }, loadSoundFont = { soundFont -> loadSoundFonts(soundFont) }, )
                     }
                 }
             }
@@ -91,8 +91,15 @@ fun loadSoundFonts(soundFonts: String){
     fun playNoteSf2(noteNumber: Int) {
         CoroutineScope(Dispatchers.IO).launch {
             synthManager.noteOn(noteNumber)
+            delay(500)
+            synthManager.noteOff(noteNumber)
         }
         }
+    fun playNoteSustain(noteNumber: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            synthManager.noteOn(noteNumber)
+        }
+    }
     fun release(noteNumber: Int) {
         CoroutineScope(Dispatchers.IO).launch {
             synthManager.noteOff(noteNumber)
@@ -124,12 +131,12 @@ fun loadSoundFonts(soundFonts: String){
 
 
 
-//@Preview(
-//    device = "spec:width=411dp,height=891dp,dpi=420,isRound=false,chinSize=0dp,orientation=landscape"
-//)
+@Preview(
+    device = "spec:width=411dp,height=891dp,dpi=420,isRound=false,chinSize=0dp,orientation=landscape"
+)
 @Composable
 fun AppAndroidPreview() {
-  PianoScreen {  }
+  Home()
 }
 
 

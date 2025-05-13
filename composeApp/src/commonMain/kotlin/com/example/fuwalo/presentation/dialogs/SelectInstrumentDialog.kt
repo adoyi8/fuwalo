@@ -61,7 +61,7 @@ fun SelectInstrumentDialog( showDialog: MutableTransitionState<Boolean>){
                             modifier = Modifier.size(75.dp)
                                 .clickable(
                                     onClick = {
-                                        loadSoundFonts("instrument_19.sf2")
+                                        loadSoundFonts("guitar.sf2")
                                         showDialog.targetState = false
                                     }
                                 )
@@ -72,7 +72,7 @@ fun SelectInstrumentDialog( showDialog: MutableTransitionState<Boolean>){
                             modifier = Modifier.size(75.dp)
                                 .clickable(
                                     onClick = {
-                                        loadSoundFonts("instrument_39.sf2")
+                                        loadSoundFonts("trumpet.sf2")
                                         showDialog.targetState = false
                                     }
                                 )
