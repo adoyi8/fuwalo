@@ -1,9 +1,11 @@
 package com.example.fuwalo
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.sound.midi.MidiSystem
 import javax.sound.midi.ShortMessage
@@ -14,7 +16,8 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "Fuwalo",
     ) {
-        App(onKeyPress = { note -> playNoteOnDesktop(note) })
+
+        App(onKeyPress = { note -> playNoteOnDesktop(note) }, playNoteSustains = { note -> playNoteOnDesktopSustain(note) }, onKeyRelease = {note-> releaseNoteOnDesktopSustain(note) })
     }
 }
 
@@ -29,6 +32,29 @@ fun playNoteOnDesktop(midiNote: Int) {
         try {
             midiChannel.noteOn(midiNote, velocity)
             Thread.sleep(durationMs)
+            midiChannel.noteOff(midiNote)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}
+
+fun playNoteOnDesktopSustain(midiNote: Int) {
+    val velocity: Int = 80
+    val durationMs: Long = 300L
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            midiChannel.noteOn(midiNote, velocity)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}
+fun releaseNoteOnDesktopSustain(midiNote: Int) {
+    val velocity: Int = 80
+    val durationMs: Long = 300L
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
             midiChannel.noteOff(midiNote)
         } catch (e: Exception) {
             e.printStackTrace()

@@ -1,6 +1,5 @@
-package com.example.fuwalo.presentation.keyboard
+package com.example.fuwalo.virtualPiano
 
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.changedToUp
@@ -17,11 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow // Optional: for visual feedback
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.foundation.interaction.MutableInteractionSource // Needed if you want to track press state easily
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.ui.unit.Dp
 import com.example.fuwalo.core.utils.Util.BLACK_KEY_HEIGHT
 import com.example.fuwalo.core.utils.Util.BLACK_KEY_WIDTH
 import com.example.fuwalo.core.utils.Util.WHITE_KEY_HEIGHT
@@ -331,25 +325,3 @@ fun EightyEightKeysPianoGemini(
     }
 }
 
-// You will need to implement PianoKeyboardTwoKeys, PianoKeyboardThreeKeys, and PianoKeyboardOneKey similarly,
-// ensuring they accept onKeyPress and onKeyRelease lambdas and pass them down to their
-// WhiteKey and BlackKey children.
-
-// Example usage in your Activity or main Composable:
-/*
-@Composable
-fun MyApp() {
-    // ... your app setup ...
-    EightyEightKeysPiano(
-        onKeyPress = { midiNote ->
-            // Call your function to START playing the note
-            startNote(midiNote)
-        },
-        onKeyRelease = { midiNote ->
-            // Call your function to STOP playing the note
-            stopNote(midiNote)
-        }
-    )
-    // ... rest of your app ...
-}
-*/

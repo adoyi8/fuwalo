@@ -2,8 +2,10 @@ package com.example.fuwalo.presentation.keyboard
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.fuwalo.virtualPiano.EightyEightKeysPianoGemini
 
 @Composable
 fun PianoLearningUI() {
@@ -15,6 +17,6 @@ fun PianoLearningUI() {
         )
 
         FallingNotesScreen(notes = notes, bottomOffset = 100.dp)
-        EightyEightKeysPiano(modifier = Modifier)
+        EightyEightKeysPianoGemini(modifier = Modifier, onKeyPress = {}, onKeyRelease = {}, sustainPedal = mutableStateOf(false))
     }
 }

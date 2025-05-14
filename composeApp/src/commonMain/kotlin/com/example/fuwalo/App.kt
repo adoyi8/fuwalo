@@ -58,10 +58,8 @@ import com.example.fuwalo.data.releaseNote
 import com.example.fuwalo.presentation.NavigationViewModel
 import com.example.fuwalo.presentation.SplashScreen
 import com.example.fuwalo.presentation.dialogs.SelectInstrumentDialog
-import com.example.fuwalo.presentation.keyboard.EightyEightKeysPiano
-import com.example.fuwalo.presentation.keyboard.EightyEightKeysPianoGemini
+import com.example.fuwalo.virtualPiano.EightyEightKeysPianoGemini
 import com.example.fuwalo.presentation.keyboard.PianoLearningUI
-import com.example.fuwalo.presentation.keyboard.TenKeysPiano
 import fuwalo.composeapp.generated.resources.Res
 import fuwalo.composeapp.generated.resources.back_arrow
 import fuwalo.composeapp.generated.resources.background
