@@ -17,10 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
+import com.example.fuwalo.learning.ParsedMidiNote
+import com.example.fuwalo.learning.parseMidiFileKt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity(){
     companion object {
@@ -46,11 +50,36 @@ class MainActivity : ComponentActivity(){
             requestPermissionLauncher.launch(readPermission)
         }
 
+
         synthManager = SynthManager(this)
         synthManager.loadSF("KawaiStereoGrand.sf3")
         synthManager.setVolume(127)
 
 
+        // Example: Name of your MIDI file in the 'assets' folder
+        val midiFileName = "jingle_bells.mid" // IMPORTANT: Replace with your actual MIDI file name
+
+        // It's good practice to run file operations off the main thread.
+        // Here's an example using Kotlin Coroutines.
+        GlobalScope.launch(Dispatchers.Main) {
+            // Perform the parsing on a background thread
+            val parsedNotes: List<ParsedMidiNote> = withContext(Dispatchers.IO) {
+                // 'this' refers to the Activity context
+                parseMidiFileKt(this@MainActivity, midiFileName)
+            }
+
+            // Now you have the parsedNotes list, you can use it.
+            // For example, print the number of notes or log them.
+            if (parsedNotes.isNotEmpty()) {
+                println("Successfully parsed ${parsedNotes.size} MIDI notes.")
+                parsedNotes.take(5).forEach { note -> // Print details of the first 5 notes
+                    println("Note: MIDI=${note.midi}, StartTime=${note.startTimeMs}ms, Duration=${note.durationMs}ms")
+                }
+                // TODO: Do something with the parsed notes (e.g., display them, play them)
+            } else {
+                println("No notes parsed or an error occurred. Check Logcat for details.")
+            }
+        }
 
 //        WindowCompat.setDecorFitsSystemWindows(window, false)
 //

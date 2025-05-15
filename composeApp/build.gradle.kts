@@ -26,7 +26,8 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            implementation("com.github.harrysommer. उर्फ:MidiFile:1.1.5") // Check for the latest version
+            implementation("dev.atsushieno:ktmidi:0.11.0")
+    // Check for the latest version
         }
         commonMain.dependencies {
             implementation(compose.runtime)
