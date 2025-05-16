@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import com.example.fuwalo.learning.ParsedMidiNote
 import com.example.fuwalo.learning.parseMidiFileKt
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -38,6 +39,7 @@ class MainActivity : ComponentActivity(){
 
 
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Permission for external SF2 loading
@@ -57,7 +59,7 @@ class MainActivity : ComponentActivity(){
 
 
         // Example: Name of your MIDI file in the 'assets' folder
-        val midiFileName = "jingle_bells.mid" // IMPORTANT: Replace with your actual MIDI file name
+        val midiFileName = "bob_marley.mid" // IMPORTANT: Replace with your actual MIDI file name
 
         // It's good practice to run file operations off the main thread.
         // Here's an example using Kotlin Coroutines.
@@ -72,8 +74,13 @@ class MainActivity : ComponentActivity(){
             // For example, print the number of notes or log them.
             if (parsedNotes.isNotEmpty()) {
                 println("Successfully parsed ${parsedNotes.size} MIDI notes.")
-                parsedNotes.take(5).forEach { note -> // Print details of the first 5 notes
-                    println("Note: MIDI=${note.midi}, StartTime=${note.startTimeMs}ms, Duration=${note.durationMs}ms")
+                while(true) {
+                    delay(2000)
+                    parsedNotes.forEach { note -> // Print details of the first 5 notes
+                        println("Note: MIDI=${note.midi}, StartTime=${note.startTimeMs}ms, Duration=${note.durationMs}ms")
+                        playNoteSf2(note.midi)
+
+                    }
                 }
                 // TODO: Do something with the parsed notes (e.g., display them, play them)
             } else {

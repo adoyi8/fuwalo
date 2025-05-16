@@ -68,17 +68,17 @@ fun parseMidiFileKt(context: Context, assetFileName: String): List<ParsedMidiNot
             inputStream.readBytes()
         }
 
-        val music = MidiMusic() // Create an instance of MidiMusic
-        music.read(midiDataBytes) // Call its public read method with ByteArray
+        val music = Midi1Music() // Create an instance of MidiMusic
+        music.read(midiDataBytes.toList()) // Call its public read method with ByteArray
 
         // music.division is a Short, represents ticks per quarter note if positive
-        val ticksPerQuarterNote = music.division.toInt()
-        if (ticksPerQuarterNote <= 0) {
-            println("Unsupported MIDI time division format (SMTPE not supported here): $ticksPerQuarterNote")
-            return emptyList()
-        }
+//        val ticksPerQuarterNote = music. .toInt()
+//        if (ticksPerQuarterNote <= 0) {
+//            println("Unsupported MIDI time division format (SMTPE not supported here): $ticksPerQuarterNote")
+//            return emptyList()
+//        }
 
-        var currentGlobalTempoMicrosPerQuarterNote: Int = 500000 // MidiMetaType.TEMPO // 500,000 µs / QN (120 BPM)
+        var currentGlobalTempoMicrosPerQuarterNote: Int = MidiMetaType.TEMPO // MidiMetaType.TEMPO // 500,000 µs / QN (120 BPM)
         // Replaced MidiMetaType.TEMPO with its common default value
         // as the definition was not provided.
 
@@ -216,48 +216,7 @@ fun parseMidiFileKt(context: Context, assetFileName: String): List<ParsedMidiNot
  * A placeholder for your MidiMusic class.
  * It would typically contain tracks, division (timing resolution), and format.
  */
-class MidiMusic {
-    var division: Short = 0 // Ticks per quarter note (if positive) or SMTPE an SMPTE an FPS format (if negative)
-    var tracks: List<MidiTrack> = emptyList() // List of MIDI tracks
 
-    /**
-     * Reads MIDI data from a ByteArray.
-     * This method would parse the byte array and populate the MidiMusic object's fields.
-     * @param data The MIDI file content as a byte array.
-     */
-    fun read(data: ByteArray) {
-        // In a real implementation, this would involve complex parsing of the MIDI file structure:
-        // 1. Read MThd (header) chunk: format, ntrks, division.
-        // 2. For each track, read MTrk (track) chunk.
-        // 3. Parse MIDI events within each track chunk (delta-times, status bytes, data bytes).
-        // This is a highly simplified placeholder.
-        println("MidiMusic.read(data) called. Data length: ${data.size}. Implement actual MIDI parsing here.")
-
-        // --- Mocked parsing for demonstration ---
-        // This is NOT a real MIDI parser. It's just to make the example runnable with dummy data.
-        if (data.isNotEmpty()) {
-            this.division = 480 // A common ticks per quarter note value
-
-            // Create a dummy track with a few dummy events for demonstration
-            val dummyMessages = mutableListOf<MidiEventContainer>()
-            // Event 1: Note On, C4 (60), velocity 100, at time 0
-            dummyMessages.add(MidiEventContainer(0, MidiShortMessage(0x90.toByte(), 60.toByte(), 100.toByte())))
-            // Event 2: Tempo Change to 100 BPM (600,000 µs/QN) after 480 ticks (1 quarter note)
-            dummyMessages.add(MidiEventContainer(480, MidiMetaMessage(0x51.toShort(), byteArrayOf(0x09, 0x27.toByte(), 0xC0.toByte())))) // 600000
-            // Event 3: Note On, E4 (64), velocity 100, after 480 ticks
-            dummyMessages.add(MidiEventContainer(480, MidiShortMessage(0x90.toByte(), 64.toByte(), 100.toByte())))
-            // Event 4: Note Off, C4 (60), velocity 0, after 480 ticks
-            dummyMessages.add(MidiEventContainer(480, MidiShortMessage(0x80.toByte(), 60.toByte(), 0.toByte())))
-            // Event 5: Note Off, E4 (64), velocity 0, after 480 ticks
-            dummyMessages.add(MidiEventContainer(480, MidiShortMessage(0x80.toByte(), 64.toByte(), 0.toByte())))
-
-            val dummyTrack = MidiTrack(dummyMessages)
-            this.tracks = listOf(dummyTrack)
-        } else {
-            this.tracks = emptyList()
-        }
-    }
-}
 
 /**
  * Represents a single MIDI track, containing a list of MIDI events.
