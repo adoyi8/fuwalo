@@ -1,305 +1,244 @@
-package com.example.fuwalo.learning // Or a more suitable package
+import com.example.fuwalo.core.utils.Util
+import dev.atsushieno.ktmidi.Midi1Event
+import dev.atsushieno.ktmidi.Midi1Music
+import dev.atsushieno.ktmidi.MidiChannelStatus.NOTE_OFF
+import dev.atsushieno.ktmidi.MidiChannelStatus.NOTE_ON
+import dev.atsushieno.ktmidi.MidiEvent
+import dev.atsushieno.ktmidi.MidiEventType
+import dev.atsushieno.ktmidi.MidiMetaType
+import dev.atsushieno.ktmidi.MidiMusic
+import dev.atsushieno.ktmidi.read
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
-import com.example.fuwalo.data.generatePianoKeys
-import java.util.UUID
 import java.io.InputStream
-import android.content.Context
+import dev.atsushieno.ktmidi.*
 
-import dev.atsushieno.ktmidi.* // ktmidi main classes
-
-
-// Represents a single note event extracted from MIDI, ready for display
-data class FallingNoteInfo(
-    val id: Int, // Unique ID for the note event
-    val midiNote: Int,
-    val startTimeMillis: Long, // When the note should ideally be played
-    val durationMillis: Long,
-    val xOffset: Dp, // Horizontal position on the screen, aligned with the key
-    val width: Dp, // Width of the falling note visual
-    val color: Color = if (generatePianoKeys().find { it.midi == midiNote }?.isBlack == true) Color.DarkGray else Color(0xFF8AB4F8), // Default color based on key type
-    var currentYPositionPx: Float = 0f, // Current Y position in pixels (top of the note)
-    var visualHeightPx: Float = 0f, // Visual height of the note, proportional to duration
-    var isVisible: Boolean = false,
-    var hasBeenHit: Boolean = false, // If the note has reached the play line and triggered
-    var hasBeenMissed: Boolean = false // If the note passed the play line without being "played" by the system
-)
-
-data class ParsedMidiNote(
-    val id: String = UUID.randomUUID().toString(),
-    val midi: Int,
+/**
+ * Data class to store extracted MIDI note information.
+ *
+ * @property midiNoteNumber The MIDI note number (0-127).
+ * @property startTimeMs The start time of the note in milliseconds from the beginning of the MIDI track.
+ * @property durationMs The duration of the note in milliseconds.
+ * @property velocity The velocity of the Note ON event (0-127).
+ * @property channel The MIDI channel the note was played on (0-15).
+ */
+data class SimpleMidiNote(
+    val midiNoteNumber: Int,
     val startTimeMs: Long,
     val durationMs: Long,
-    var isProcessed: Boolean = false, // For PianoLearningScreen internal tracking
-    var isPlayedOrMissed: Boolean = false // For PianoLearningScreen internal tracking
+    val velocity: Int,
+    val channel: Int,
+    val noteType: String
 )
- // Create a new package for MIDI utilities
+
+// Helper class to manage events from all tracks with their absolute tick times.
+// This is an internal detail for correct processing and doesn't complicate the public API.
+private data class TimedMidiEvent(
+    val absoluteTick: Long,
+    val event: Midi1Event,
+    val trackIndex: Int // For debugging or more advanced logic if needed
+)
+
+/**
+ * Extracts MIDI note information (note number, start time, duration, velocity, channel)
+ * from a given InputStream representing a .mid file.
+ *
+ * Uses the dev.atsushieno:ktmidi library for parsing.
+ *
+ * @param inputStream The InputStream of the MIDI file.
+ * @return A list of SimpleMidiNote objects, sorted by start time. Returns an empty list on error
+ * or if the MIDI time format is unsupported (e.g., SMPTE).
+ */
+// Make sure you have necessary imports
+
+// Assuming TimedMidiEvent is defined something like:
+// data class TimedMidiEvent(val absoluteTick: Long, val event: MidiMessage, val trackIndex: Int)
+// And SimpleMidiNote:
+// data class SimpleMidiNote(val midiNoteNumber: Int, val startTimeMs: Long, val durationMs: Long, val velocity: Int, val channel: Int)
 
 
-
-// Assuming these are your project's classes/objects.
-// You'll need to ensure they are correctly defined and imported.
-// object MidiMusic // Placeholder for your MidiMusic class
-// object MidiMetaType // Placeholder
-// object MidiChannelStatus // Placeholder
-// object MidiFunctions // Placeholder
-// data class ParsedMidiNote(val midi: Int, val startTimeMs: Long, val durationMs: Long) // Placeholder
-// class MidiMusic { // Placeholder
-//    var division: Short = 0
-//    var tracks: List<MidiTrack> = emptyList()
-//    fun read(data: ByteArray) { /* Implementation */ }
-// }
-// data class MidiTrack(val messages: List<MidiEventContainer>) // Placeholder
-// data class MidiEventContainer(val deltaTime: Int, val event: MidiEvent) // Placeholder
-// interface MidiEvent // Placeholder
-// data class MidiMetaMessage(val type: Short, val data: ByteArray) : MidiEvent // Placeholder
-// data class MidiShortMessage(val statusByte: Byte, val msb: Byte, val lsb: Byte) : MidiEvent // Placeholder
-
-
-// --- START OF ACTUAL USER CODE WITH CORRECTION ---
-fun parseMidiFileKt(context: Context, assetFileName: String): List<ParsedMidiNote> {
-    val parsedNotes = mutableListOf<ParsedMidiNote>()
-    val assetManager = context.assets
+fun extractMidiNotes(inputStream: InputStream): List<SimpleMidiNote> {
+    val extractedNotes = mutableListOf<SimpleMidiNote>()
+    val activeNotesMap = mutableMapOf<Pair<Int, Int>, Pair<Long, Int>>()
 
     try {
-        // Read all bytes from the InputStream
-        val midiDataBytes: ByteArray = assetManager.open(assetFileName).use { inputStream ->
-            inputStream.readBytes()
+        val music = Midi1Music()
+        music.read(inputStream.readBytes().toList())
+
+        val ticksPerQuarterNote = music.deltaTimeSpec
+        if (ticksPerQuarterNote <= 0) {
+            System.err.println(
+                "Unsupported MIDI time format: deltaTimeSpec is $ticksPerQuarterNote. " +
+                        "This simple parser only supports positive PPQN (ticks per quarter note) values."
+            )
+            return emptyList()
         }
 
-        val music = Midi1Music() // Create an instance of MidiMusic
-        music.read(midiDataBytes.toList()) // Call its public read method with ByteArray
-
-        // music.division is a Short, represents ticks per quarter note if positive
-//        val ticksPerQuarterNote = music. .toInt()
-//        if (ticksPerQuarterNote <= 0) {
-//            println("Unsupported MIDI time division format (SMTPE not supported here): $ticksPerQuarterNote")
-//            return emptyList()
-//        }
-
-        var currentGlobalTempoMicrosPerQuarterNote: Int = MidiMetaType.TEMPO // MidiMetaType.TEMPO // 500,000 µs / QN (120 BPM)
-        // Replaced MidiMetaType.TEMPO with its common default value
-        // as the definition was not provided.
-
-        fun ticksToMs(ticks: Long, tempoMicrosPerQN: Int, division: Int): Long {
-            if (division == 0) return 0L
-            // Ensure floating point division for precision
-            val microsecondsPerTick = tempoMicrosPerQN.toDouble() / division.toDouble()
-            return (ticks * microsecondsPerTick / 1000.0).toLong()
+        val allTimedEvents = mutableListOf<TimedMidiEvent>() // Your TimedMidiEvent class
+        music.tracks.forEachIndexed { trackIdx, track ->
+            var currentTickInTrack = 0L
+            track.events.forEach { ktMidiMessage -> // This is dev.atsushieno.ktmidi.MidiMessage
+                currentTickInTrack += ktMidiMessage.deltaTime
+                // Assuming your TimedMidiEvent stores the ktMidiMessage directly
+                allTimedEvents.add(TimedMidiEvent(currentTickInTrack, ktMidiMessage, trackIdx))
+            }
         }
+        allTimedEvents.sortBy { it.absoluteTick }
 
-        // Pair<Channel, NotePitch> to StartTimeInTicks
-        val activeNotesOnTrack = mutableMapOf<Pair<Int, Int>, Long>()
-        // Pair<Channel, NotePitch> to TempoAtNoteOn (microseconds per quarter note)
-        val tempoAtNoteOn = mutableMapOf<Pair<Int, Int>, Int>()
+        var currentGlobalTimeMillis = 0L
+        var lastEventAbsoluteTick = 0L
+        var microsecondsPerQuarterNote = 500000L // Default tempo: 120 BPM
 
-        music.tracks.forEach { track ->
-            var currentTickTimeInTrack: Long = 0
-            // Each track can have its own tempo changes, but starts with the global/last known tempo.
-            var trackSpecificTempoMicrosPerQN = currentGlobalTempoMicrosPerQuarterNote
+        for (timedEvent in allTimedEvents) {
+            val eventAbsoluteTick = timedEvent.absoluteTick
+            // Assuming timedEvent.event IS the dev.atsushieno.ktmidi.MidiMessage
+            val midiMessage = timedEvent.event // This is the ktmidi.MidiMessage
 
-            activeNotesOnTrack.clear() // Clear for each track
-            tempoAtNoteOn.clear() // Clear for each track
+            val deltaTicks = eventAbsoluteTick - lastEventAbsoluteTick
+            if (deltaTicks > 0) {
+                val millisElapsed = (deltaTicks.toDouble() / ticksPerQuarterNote.toDouble() *
+                        microsecondsPerQuarterNote.toDouble() / 1000.0).toLong()
+                currentGlobalTimeMillis += millisElapsed
+            }
+            lastEventAbsoluteTick = eventAbsoluteTick
 
-            track.messages.forEach { midiEventContainer ->
-                currentTickTimeInTrack += midiEventContainer.deltaTime.toLong()
-                val eventMessage = midiEventContainer.event
+            val statusByte = midiMessage.message.statusByte.toInt()
+            val eventTypeWithoutChannel = statusByte and 0xF0
+            val channel = statusByte and 0x0F
 
-                when (eventMessage) {
-                    is MidiMetaMessage -> {
-                        // Assuming MidiMetaType.TEMPO_CHANGE is a Short/Int constant
-                        if (eventMessage.type == 3.toShort()) { // Common value for tempo change meta event (0x51)
-                            // Replaced MidiMetaType.TEMPO_CHANGE with a common value
-                            if (eventMessage.data.size >= 3) {
-                                // Assuming MidiFunctions.bytesToInt is available and correct
-                                val newTempo = MidiFunctions.bytesToInt(eventMessage.data, 0, 3)
-                                trackSpecificTempoMicrosPerQN = newTempo
-                                // Optional: Update global tempo if this is the first track or a specific type of tempo event
-                                // For simplicity here, tempo changes are mostly track-local but can influence subsequent notes
-                                // currentGlobalTempoMicrosPerQuarterNote = newTempo
+            when (eventTypeWithoutChannel) {
+                NOTE_ON.toInt() -> { // MidiEventType.NOTE_ON is 0x90
+                    // Correctly get note and velocity from msb and lsb
+                    val noteNumber = midiMessage.message.msb.toInt() and 0xFF
+                    val velocityValue = midiMessage.message.lsb.toInt() and 0xFF
+                    val noteKey = Pair(channel, noteNumber)
+
+                    if (velocityValue > 0) { // Actual Note On event
+                        activeNotesMap.remove(noteKey)?.let { (startTimeMsPrev, velocityPrev) ->
+                            val durationMsPrev = currentGlobalTimeMillis - startTimeMsPrev
+                            if (durationMsPrev >= 0) {
+                                extractedNotes.add(SimpleMidiNote(
+                                    midiNoteNumber = noteNumber, // Corrected noteNumber
+                                    startTimeMs = startTimeMsPrev,
+                                    durationMs = durationMsPrev,
+                                    velocity = velocityPrev,
+                                    channel = channel,
+                                    noteType = Util.NOTE_ON
+                                ))
                             }
                         }
-                    }
-                    is MidiShortMessage -> {
-                        val channel = eventMessage.statusByte.toInt() and 0x0F
-                        val command = eventMessage.statusByte.toInt() and 0xF0
-                        val notePitch = eventMessage.msb.toInt()
-                        val velocity = eventMessage.lsb.toInt()
-                        val noteKey = Pair(channel, notePitch)
-
-                        // Assuming MidiChannelStatus.NOTE_ON and NOTE_OFF are Int constants
-                        val NOTE_ON_COMMAND = 0x90
-                        val NOTE_OFF_COMMAND = 0x80
-
-                        if (command == NOTE_ON_COMMAND && velocity > 0) {
-                            // Note On event
-                            // If a note with the same pitch and channel is already on,
-                            // treat this as the end of the previous one and start of a new one.
-                            // This handles cases where NOTE_OFF might be missing.
-                            if (activeNotesOnTrack.containsKey(noteKey)) {
-                                val prevStartTimeTicks = activeNotesOnTrack.remove(noteKey)!!
-                                val prevTempo = tempoAtNoteOn.remove(noteKey) ?: trackSpecificTempoMicrosPerQN
-                                val durationTicks = currentTickTimeInTrack - prevStartTimeTicks
-
-                                if (durationTicks >= 0) { // Ensure non-negative duration
-                                    parsedNotes.add(
-                                        ParsedMidiNote(
-                                            midi = notePitch,
-                                            startTimeMs = ticksToMs(prevStartTimeTicks, prevTempo, ticksPerQuarterNote),
-                                            durationMs = ticksToMs(durationTicks, prevTempo, ticksPerQuarterNote).coerceAtLeast(1L) // Ensure min 1ms duration
-                                        )
-                                    )
-                                }
-                            }
-                            activeNotesOnTrack[noteKey] = currentTickTimeInTrack
-                            tempoAtNoteOn[noteKey] = trackSpecificTempoMicrosPerQN
-                        } else if (command == NOTE_OFF_COMMAND || (command == NOTE_ON_COMMAND && velocity == 0)) {
-                            // Note Off event (or Note On with velocity 0)
-                            if (activeNotesOnTrack.containsKey(noteKey)) {
-                                val startTimeTicks = activeNotesOnTrack.remove(noteKey)!!
-                                val noteOnTempo = tempoAtNoteOn.remove(noteKey) ?: trackSpecificTempoMicrosPerQN
-                                val durationTicks = currentTickTimeInTrack - startTimeTicks
-
-                                if (durationTicks >= 0) { // Ensure non-negative duration
-                                    parsedNotes.add(
-                                        ParsedMidiNote(
-                                            midi = notePitch,
-                                            startTimeMs = ticksToMs(startTimeTicks, noteOnTempo, ticksPerQuarterNote),
-                                            durationMs = ticksToMs(durationTicks, noteOnTempo, ticksPerQuarterNote).coerceAtLeast(1L) // Ensure min 1ms duration
-                                        )
-                                    )
-                                }
+                        activeNotesMap[noteKey] = Pair(currentGlobalTimeMillis, velocityValue)
+                    } else { // Note On with velocity 0 is equivalent to Note Off
+                        activeNotesMap.remove(noteKey)?.let { (startTimeMs, originalVelocity) ->
+                            val durationMs = currentGlobalTimeMillis - startTimeMs
+                            if (durationMs >= 0) {
+                                extractedNotes.add(SimpleMidiNote(
+                                    midiNoteNumber = noteNumber, // Corrected noteNumber
+                                    startTimeMs = startTimeMs,
+                                    durationMs = durationMs,
+                                    velocity = originalVelocity,
+                                    channel = channel,
+                                    noteType = Util.NOTE_ON
+                                ))
                             }
                         }
                     }
                 }
+                NOTE_OFF.toInt() -> { // MidiEventType.NOTE_OFF is 0x80
+                    // Correctly get note from msb
+                    val noteNumber = midiMessage.message.msb.toInt() and 0xFF
+                    // val releaseVelocity = midiMessage.lsb.toInt() and 0xFF // If you need it
+                    val noteKey = Pair(channel, noteNumber)
+
+                    activeNotesMap.remove(noteKey)?.let { (startTimeMs, originalVelocity) ->
+                        val durationMs = currentGlobalTimeMillis - startTimeMs
+                        if (durationMs >= 0) {
+                            extractedNotes.add(SimpleMidiNote(
+                                midiNoteNumber = noteNumber, // Corrected noteNumber
+                                startTimeMs = startTimeMs,
+                                durationMs = durationMs,
+                                velocity = originalVelocity,
+                                channel = channel,
+                                noteType = Util.NOTE_OFF
+                            ))
+                        }
+                    }
+                }
+                // No specific handling for other channel messages in this snippet, but could be added.
             }
-            // After processing all events in a track, handle any notes that are still "on"
-            // (i.e., NOTE_ON without a corresponding NOTE_OFF by the end of the track)
-            activeNotesOnTrack.keys.toList().forEach { noteKeyToClear -> // Iterate over a copy of keys
-                val startTimeTicks = activeNotesOnTrack.remove(noteKeyToClear)!!
-                val noteOnTempo = tempoAtNoteOn.remove(noteKeyToClear) ?: trackSpecificTempoMicrosPerQN
-                // Consider the track's end time as the end for these notes
-                val durationTicks = currentTickTimeInTrack - startTimeTicks
-                if (durationTicks > 0) { // Only add if duration is positive
-                    parsedNotes.add(
-                        ParsedMidiNote(
-                            midi = noteKeyToClear.second, // notePitch
-                            startTimeMs = ticksToMs(startTimeTicks, noteOnTempo, ticksPerQuarterNote),
-                            durationMs = ticksToMs(durationTicks, noteOnTempo, ticksPerQuarterNote).coerceAtLeast(1L)
-                        )
+
+            // Handle Meta Events (like Tempo) - outside the channel message switch if statusByte is META
+//            if (statusByte == Midi1Status.META.toInt()) { // 0xFF for Meta events
+//                if (midiMessage.message.metaType.toInt() == MidiMetaType.TEMPO && midiMessage .size >= 3) {
+//                    microsecondsPerQuarterNote = (midiMessage.data[0].toInt() and 0xFF shl 16) or
+//                            (midiMessage.message.data[1].toInt() and 0xFF shl 8) or
+//                            (midiMessage.data[2].toInt() and 0xFF)
+//                }
+//                // Add other meta event handling here if needed (e.g., End of Track)
+//            }
+        }
+
+        activeNotesMap.forEach { (key, value) ->
+            val (ch, nn) = key
+            val (startTimeMs, vel) = value
+            val durationMs = currentGlobalTimeMillis - startTimeMs
+            if (durationMs >= 0) {
+                extractedNotes.add(SimpleMidiNote(
+                    midiNoteNumber = nn,
+                    startTimeMs = startTimeMs,
+                    durationMs = durationMs,
+                    velocity = vel,
+                    channel = ch,
+                    noteType = Util.NOTE_OFF
+                ))
+            }
+        }
+        activeNotesMap.clear()
+
+    } catch (e: Exception) {
+        System.err.println("Error parsing MIDI file: ${e.message}")
+        e.printStackTrace()
+        return emptyList()
+    }
+
+    extractedNotes.sortWith(compareBy({ it.startTimeMs }, { it.channel }, { it.midiNoteNumber }))
+    return extractedNotes
+}
+
+// You would need your TimedMidiEvent data class, e.g.:
+// data class TimedMidiEvent(val absoluteTick: Long, val event: MidiMessage, val trackIndex: Int)
+
+// Example Usage (requires a .mid file and a way to get an InputStream):
+/*
+fun main() { // Or in your Android Activity/ViewModel
+    // In a real Android app, you'd get this from assets, file picker, etc.
+    // For testing, you can place a midi file in resources or use a File path.
+    val midiFilePath = "path/to/your/file.mid" // Replace with actual path or resource loading
+    try {
+        val inputStream: InputStream = File(midiFilePath).inputStream() // Example for local file
+        // Or from Android assets:
+        // val assets: AssetManager = context.assets
+        // val inputStream: InputStream = assets.open("your_midi_file.mid")
+
+
+        inputStream.use { stream ->
+            val notes = extractMidiNotes(stream)
+            if (notes.isNotEmpty()) {
+                println("Successfully extracted ${notes.size} notes:")
+                notes.forEach { note ->
+                    println(
+                        "  Note: ${note.midiNoteNumber}, Start: ${note.startTimeMs}ms, " +
+                        "Duration: ${note.durationMs}ms, Velocity: ${note.velocity}, Channel: ${note.channel}"
                     )
                 }
+            } else {
+                println("No notes extracted or an error occurred.")
             }
-            activeNotesOnTrack.clear() // Defensive clear
-            tempoAtNoteOn.clear() // Defensive clear
         }
+    } catch (e: java.io.FileNotFoundException) {
+        System.err.println("MIDI file not found: $midiFilePath")
     } catch (e: Exception) {
-        println("Error parsing MIDI file '$assetFileName': ${e.localizedMessage}")
-        e.printStackTrace() // Good for debugging, consider a more robust logging strategy for production
-        // Depending on requirements, you might want to return emptyList() or rethrow
-    }
-
-    // Sort all collected notes by their start time
-    return parsedNotes.sortedBy { it.startTimeMs }
-}
-
-// --- HELPER/PLACEHOLDER DEFINITIONS (These would be in your actual MIDI library) ---
-
-/**
- * Represents a parsed MIDI note with timing in milliseconds.
- */
-
-
-/**
- * A placeholder for your MidiMusic class.
- * It would typically contain tracks, division (timing resolution), and format.
- */
-
-
-/**
- * Represents a single MIDI track, containing a list of MIDI events.
- */
-data class MidiTrack(val messages: List<MidiEventContainer>)
-
-/**
- * Container for a MIDI event and its delta-time from the previous event.
- * @param deltaTime Ticks since the previous event in the track.
- * @param event The MIDI event itself.
- */
-data class MidiEventContainer(val deltaTime: Int, val event: MidiEvent)
-
-/**
- * Base interface for MIDI events (Short messages, Meta messages, Sysex messages).
- */
-interface MidiEvent
-
-/**
- * Represents a MIDI Meta Event (e.g., tempo change, time signature, lyrics).
- * @param type The type of meta event (e.g., 0x51 for Tempo Change).
- * @param data The data associated with the meta event.
- */
-data class MidiMetaMessage(val type: Short, val data: ByteArray) : MidiEvent {
-    // Optional: For cleaner comparison if type is used in when statements directly
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        other as MidiMetaMessage
-        if (type != other.type) return false
-        if (!data.contentEquals(other.data)) return false
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = type.toInt()
-        result = 31 * result + data.contentHashCode()
-        return result
+        System.err.println("An error occurred during example usage: ${e.message}")
+        e.printStackTrace()
     }
 }
-
-/**
- * Represents a MIDI Short Message (Channel messages like Note On, Note Off, Control Change).
- * @param statusByte The status byte (includes command and channel).
- * @param msb Most significant byte (e.g., note pitch for Note On/Off).
- * @param lsb Least significant byte (e.g., velocity for Note On/Off).
- */
-data class MidiShortMessage(val statusByte: Byte, val msb: Byte, val lsb: Byte) : MidiEvent
-
-
-/**
- * Placeholder for your MIDI constants.
- */
-object MidiMetaType {
-    const val TEMPO: Int = 500000 // Default tempo: 500,000 microseconds per quarter note (120 BPM)
-    const val TEMPO_CHANGE: Short = 0x51 // Standard MIDI meta event type for tempo change
-    // Add other meta types as needed, e.g., TIME_SIGNATURE, KEY_SIGNATURE, END_OF_TRACK
-}
-
-object MidiChannelStatus {
-    const val NOTE_OFF: Int = 0x80         // Note Off event (channel n)
-    const val NOTE_ON: Int = 0x90          // Note On event (channel n)
-    // Add other channel statuses like POLY_PRESSURE, CONTROL_CHANGE, PROGRAM_CHANGE, etc.
-}
-
-/**
- * Placeholder for MIDI utility functions.
- */
-object MidiFunctions {
-    /**
-     * Converts a portion of a byte array to an integer (big-endian).
-     * @param bytes The byte array.
-     * @param offset The starting offset in the byte array.
-     * @param length The number of bytes to convert (usually 2, 3, or 4).
-     * @return The integer value.
-     */
-    fun bytesToInt(bytes: ByteArray, offset: Int, length: Int): Int {
-        var result = 0
-        for (i in 0 until length) {
-            result = (result shl 8) or (bytes[offset + i].toInt() and 0xFF)
-        }
-        return result
-    }
-}
-
-// --- END OF HELPER/PLACEHOLDER DEFINITIONS ---
+*/

@@ -26,7 +26,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            implementation("dev.atsushieno:ktmidi:0.11.0")
+
     // Check for the latest version
         }
         commonMain.dependencies {
@@ -40,6 +40,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.jetbrains.compose.navigation)
             implementation(libs.kotlinx.serialization.json)
+            implementation("dev.atsushieno:ktmidi:0.11.0")
             implementation (libs.androidx.material3) // or latest version
         }
         desktopMain.dependencies {

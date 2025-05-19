@@ -21,6 +21,7 @@ fun main() = application {
     }
 }
 
+
 // Keep synthesizer open globally
 val synthesizer: Synthesizer = MidiSystem.getSynthesizer().apply { open() }
 val midiChannel = synthesizer.channels[0] // Channel 0 usually piano

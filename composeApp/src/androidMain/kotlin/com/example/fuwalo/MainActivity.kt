@@ -1,5 +1,6 @@
 package com.example.fuwalo
 
+import SimpleMidiNote
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
@@ -17,8 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import com.example.fuwalo.learning.ParsedMidiNote
-import com.example.fuwalo.learning.parseMidiFileKt
+import com.example.fuwalo.core.utils.Util
+import extractMidiNotes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -58,33 +59,60 @@ class MainActivity : ComponentActivity(){
         synthManager.setVolume(127)
 
 
+
         // Example: Name of your MIDI file in the 'assets' folder
-        val midiFileName = "bob_marley.mid" // IMPORTANT: Replace with your actual MIDI file name
+        val midiFileName = "thriller.mid" // IMPORTANT: Replace with your actual MIDI file name
 
         // It's good practice to run file operations off the main thread.
         // Here's an example using Kotlin Coroutines.
-        GlobalScope.launch(Dispatchers.Main) {
-            // Perform the parsing on a background thread
-            val parsedNotes: List<ParsedMidiNote> = withContext(Dispatchers.IO) {
-                // 'this' refers to the Activity context
-                parseMidiFileKt(this@MainActivity, midiFileName)
+        GlobalScope.launch(Dispatchers.Main) { // Dispatchers.Main is okay for launching, but synth operations might prefer Dispatchers.Default
+            val parsedEvents: List<SimpleMidiNote> = withContext(Dispatchers.IO) {
+                // 'this' refers to the Activity context, assuming this code is inside an Activity
+                // Replace with your actual context if needed:
+                // extractMidiNotes(this@YourActivityName.assets.open(midiFileName))
+                extractMidiNotes(assets.open(midiFileName)) // Assuming 'assets' is accessible
             }
 
-            // Now you have the parsedNotes list, you can use it.
-            // For example, print the number of notes or log them.
-            if (parsedNotes.isNotEmpty()) {
-                println("Successfully parsed ${parsedNotes.size} MIDI notes.")
-                while(true) {
-                    delay(2000)
-                    parsedNotes.forEach { note -> // Print details of the first 5 notes
-                        println("Note: MIDI=${note.midi}, StartTime=${note.startTimeMs}ms, Duration=${note.durationMs}ms")
-                        playNoteSf2(note.midi)
+            if (parsedEvents.isNotEmpty()) {
+                println("Successfully parsed ${parsedEvents.size} MIDI events.")
 
+                // 1. Sort events by their startTimeMs. This is crucial for correct playback order.
+                val sortedEvents = parsedEvents.sortedBy { it.startTimeMs }
+
+                var currentTimeMs = 0L // Keeps track of the playback timeline
+
+                // 2. Iterate through the sorted events and play them with correct timing.
+                for (event in sortedEvents) {
+                    // Calculate how long to wait before this event needs to occur
+                    val delayDuration = event.startTimeMs - currentTimeMs
+                    if (delayDuration > 0) {
+                        delay(delayDuration)
                     }
+                    currentTimeMs = event.startTimeMs // Update current time to this event's timestamp
+
+                    // Log the event being processed
+                    // Consider using Android's Log.d for debugging if in an Android app
+                    println("Time: ${currentTimeMs}ms - Type: ${event.noteType}, MIDI=${event.midiNoteNumber}, Vel=${event.velocity}, Chan=${event.channel}")
+
+                    // 3. Perform action based on event type
+                    if (event.noteType == Util.NOTE_ON) {
+                        // You might want to use event.velocity and event.channel here
+                     //   playNoteSustain(event.midiNoteNumber /*, event.velocity, event.channel */)
+                        //delay(event.durationMs)
+                        //release(event.midiNoteNumber)
+                    } else if (event.noteType == Util.NOTE_OFF) {
+                        // Channel might also be relevant for note off
+                       // release(event.midiNoteNumber /*, event.channel */)
+                    }
+                    // The 'durationMs' field in SimpleMidiNote is not used in this version
+                    // because the playback relies on explicit NOTE_OFF events found in the parsed list.
+                    // If your 'SimpleMidiNote' for a NOTE_ON event is meant to define its own duration
+                    // (and you don't have separate NOTE_OFF events), the playback logic would be different.
                 }
-                // TODO: Do something with the parsed notes (e.g., display them, play them)
+                println("Finished processing all MIDI events.")
+
             } else {
-                println("No notes parsed or an error occurred. Check Logcat for details.")
+                println("No MIDI events parsed or an error occurred. Check Logcat for details.")
             }
         }
 

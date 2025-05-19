@@ -1,22 +1,31 @@
 package com.example.fuwalo.presentation.keyboard
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.fuwalo.learning.FallingNotesAnimationScreen
 import com.example.fuwalo.virtualPiano.EightyEightKeysPianoGemini
 
 @Composable
 fun PianoLearningUI() {
-    Column() {
-        val notes = listOf(
-            FallingNote(xOffset = 0.dp, width = 40.dp, height = 100.dp, delayMs = 0),
-            FallingNote(xOffset = 60.dp, width = 40.dp, height = 150.dp, delayMs = 500),
-            FallingNote(xOffset = 120.dp, width = 40.dp, height = 80.dp, delayMs = 1000)
-        )
+//    Column() {
+//        val notes = listOf(
+//            FallingNote(xOffset = 0.dp, width = 40.dp, height = 100.dp, delayMs = 0),
+//            FallingNote(xOffset = 60.dp, width = 40.dp, height = 150.dp, delayMs = 500),
+//            FallingNote(xOffset = 120.dp, width = 40.dp, height = 80.dp, delayMs = 1000)
+//        )
+//
+//        FallingNotesScreen(notes = notes, bottomOffset = 100.dp)
+//        EightyEightKeysPianoGemini(modifier = Modifier, onKeyPress = {}, onKeyRelease = {}, sustainPedal = mutableStateOf(false))
+//    }
+    Column(){
+        FallingNotesAnimationScreen(modifier = Modifier.weight(1f))
+        EightyEightKeysPianoGemini(modifier = Modifier.weight(1f).widthIn(min = 0.dp, max = 3000.dp), onKeyPress = {}, onKeyRelease = {}, sustainPedal = mutableStateOf(false))
 
-        FallingNotesScreen(notes = notes, bottomOffset = 100.dp)
-        EightyEightKeysPianoGemini(modifier = Modifier, onKeyPress = {}, onKeyRelease = {}, sustainPedal = mutableStateOf(false))
     }
+
 }

@@ -21,6 +21,9 @@ object Util {
     val BLACK_KEY_HEIGHT = 160.dp
     val buttonsColor = Color(0xff7f90c6)
 
+    val NOTE_ON = "NOTE_ON"
+    val NOTE_OFF = "NOTE_OFF"
+
 
 
 
